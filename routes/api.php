@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\TradeInController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Http\Request;
@@ -71,11 +72,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
-    // percakapan & pesan
     Route::get('/conversations', [ConversationController::class, 'index']);
     Route::post('/conversations', [ConversationController::class, 'store']);
     Route::get('/conversations/{id}', [ConversationController::class, 'show']);
     Route::post('/conversations/{id}/messages', [ConversationController::class, 'sendMessage']);
+
+    // trade-in
+    Route::get('/trade-ins', [TradeInController::class, 'index']);
+    Route::post('/trade-ins', [TradeInController::class, 'store']);
+    Route::get('/trade-ins/{id}', [TradeInController::class, 'show']);
+    Route::patch('/trade-ins/{id}/accept', [TradeInController::class, 'accept']);
+    Route::patch('/trade-ins/{id}/reject', [TradeInController::class, 'reject']);
 });
 
 Route::get('/test-cors', function () {
