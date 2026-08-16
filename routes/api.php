@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
@@ -25,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/me', [MeController::class, 'update']);
 });
 
-// daftar route produk - yang spesifik (featured, flash-deals, price-drops) harus di atas {sku}
+// daftar route produk
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/flash-deals', [ProductController::class, 'flashDeals']);
@@ -33,28 +34,36 @@ Route::get('/products/price-drops', [ProductController::class, 'priceDrops']);
 Route::get('/products/{sku}', [ProductController::class, 'show']);
 Route::get('/products/{sku}/related', [ProductController::class, 'related']);
 
-// kategori & brand untuk filter sidebar
+// kategori & brand
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{name}/subcategories', [CategoryController::class, 'subcategories']);
 Route::get('/brands', [BrandController::class, 'index']);
 
-// istilah populer untuk suggestions pencarian
+// search
 Route::get('/search/popular', [SearchController::class, 'popular']);
 
-// CRUD produk (protected)
+// tracking pesanan (publik)
+Route::get('/orders/tracking/{orderNumber}', [OrderController::class, 'tracking']);
+
+// routes yang butuh login
 Route::middleware('auth:sanctum')->group(function () {
+    // CRUD produk
     Route::post('/products', [ProductController::class, 'store']);
     Route::patch('/products/{sku}', [ProductController::class, 'update']);
     Route::put('/products/{sku}', [ProductController::class, 'update']);
     Route::delete('/products/{sku}', [ProductController::class, 'destroy']);
-});
 
-// wishlist (protected)
-Route::middleware('auth:sanctum')->group(function () {
+    // wishlist
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/wishlist', [WishlistController::class, 'store']);
     Route::get('/wishlist/check', [WishlistController::class, 'check']);
     Route::delete('/wishlist/{productId}', [WishlistController::class, 'destroy']);
+
+    // pesanan
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{orderNumber}', [OrderController::class, 'show']);
+    Route::post('/orders/{orderNumber}/pay', [OrderController::class, 'pay']);
 });
 
 // test CORS
