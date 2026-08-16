@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
@@ -16,7 +17,6 @@ use App\Http\Controllers\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// auth routes (public)
 Route::post('/auth/register', RegisterController::class);
 Route::post('/auth/login', LoginController::class);
 Route::post('/auth/refresh', RefreshController::class);
@@ -63,9 +63,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{orderNumber}', [OrderController::class, 'show']);
     Route::post('/orders/{orderNumber}/pay', [OrderController::class, 'pay']);
 
-    // upload file
     Route::post('/upload', [UploadController::class, 'store']);
     Route::post('/upload/multiple', [UploadController::class, 'storeMultiple']);
+
+    // notifikasi
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 });
 
 Route::get('/test-cors', function () {
