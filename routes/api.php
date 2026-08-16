@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RefreshController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,9 @@ Route::get('/products/{sku}/related', [ProductController::class, 'related']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{name}/subcategories', [CategoryController::class, 'subcategories']);
 Route::get('/brands', [BrandController::class, 'index']);
+
+// istilah populer untuk suggestions pencarian
+Route::get('/search/popular', [SearchController::class, 'popular']);
 
 // CRUD produk (protected)
 Route::middleware('auth:sanctum')->group(function () {

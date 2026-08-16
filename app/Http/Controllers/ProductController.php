@@ -8,6 +8,7 @@ use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ProductHistory;
+use App\Services\SearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +23,12 @@ class ProductController extends Controller
     {
         $query = Product::query()->with('seller');
 
-        // pencarian full-text pakai TNTSearch (ada toleransi typo)
-        $search = trim((string) $request->query('q', ''));
-        if ($search !== '') {
-            $ids = Product::search($search)
+        // pencarian full-text pakai TNTSearch (ada toleransi typo + sinonim)
+                $search = trim((string) $request->query('q', ''));
+                if ($search !== '') {
+                    // tambah sinonim biar user yang pakai singkatan tetap nemu
+                    $expanded = SearchService::expand($search);
+                    $ids = Product::search($expanded)
                 ->query(fn ($builder) => $builder->select('id'))
                 ->take(1000)
                 ->keys();
