@@ -9,6 +9,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/products/{sku}', [ProductController::class, 'update']);
     Route::put('/products/{sku}', [ProductController::class, 'update']);
     Route::delete('/products/{sku}', [ProductController::class, 'destroy']);
+});
+
+// wishlist (protected)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist', [WishlistController::class, 'store']);
+    Route::get('/wishlist/check', [WishlistController::class, 'check']);
+    Route::delete('/wishlist/{productId}', [WishlistController::class, 'destroy']);
 });
 
 // test CORS
