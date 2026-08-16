@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +30,11 @@ Route::get('/products/flash-deals', [ProductController::class, 'flashDeals']);
 Route::get('/products/price-drops', [ProductController::class, 'priceDrops']);
 Route::get('/products/{sku}', [ProductController::class, 'show']);
 Route::get('/products/{sku}/related', [ProductController::class, 'related']);
+
+// kategori & brand untuk filter sidebar
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{name}/subcategories', [CategoryController::class, 'subcategories']);
+Route::get('/brands', [BrandController::class, 'index']);
 
 // CRUD produk (protected)
 Route::middleware('auth:sanctum')->group(function () {

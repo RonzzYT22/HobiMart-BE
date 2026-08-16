@@ -14,6 +14,10 @@ class DatabaseSeeder extends Seeder
     // seed data awal untuk testing
     public function run(): void
     {
+        // kategori & brand sesuai data frontend
+        $this->call(CategorySeeder::class);
+        $this->call(BrandSeeder::class);
+
         // seller dengan data lengkap
         User::factory()->create([
             'name' => 'HobiMart Official',
