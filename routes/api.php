@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
@@ -7,12 +8,16 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\GeoController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\TradeInController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\WishlistController;
@@ -49,6 +54,14 @@ Route::get('/orders/tracking/{orderNumber}', [OrderController::class, 'tracking'
 
 Route::post('/promo/validate', [PromoController::class, 'validate']);
 
+// community (publik)
+Route::get('/community/posts', [CommunityController::class, 'posts']);
+Route::get('/community/posts/{post}', [CommunityController::class, 'show']);
+
+// geo (publik)
+Route::get('/geo/provinces', [GeoController::class, 'provinces']);
+Route::get('/geo/provinces/{provinceId}/cities', [GeoController::class, 'cities']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/products', [ProductController::class, 'store']);
     Route::patch('/products/{sku}', [ProductController::class, 'update']);
@@ -77,12 +90,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/conversations/{id}', [ConversationController::class, 'show']);
     Route::post('/conversations/{id}/messages', [ConversationController::class, 'sendMessage']);
 
-    // trade-in
     Route::get('/trade-ins', [TradeInController::class, 'index']);
     Route::post('/trade-ins', [TradeInController::class, 'store']);
     Route::get('/trade-ins/{id}', [TradeInController::class, 'show']);
     Route::patch('/trade-ins/{id}/accept', [TradeInController::class, 'accept']);
     Route::patch('/trade-ins/{id}/reject', [TradeInController::class, 'reject']);
+
+    // community (protected)
+    Route::post('/community/posts', [CommunityController::class, 'storePost']);
+    Route::post('/community/posts/{post}/comments', [CommunityController::class, 'addComment']);
+    Route::post('/community/posts/{post}/like', [CommunityController::class, 'like']);
+
+    // seller dashboard
+    Route::get('/seller/stats', [SellerController::class, 'stats']);
+
+    // shipping labels
+    Route::post('/orders/{orderNumber}/shipping-label', [ShippingController::class, 'generateLabel']);
+
+    // admin
+    Route::get('/admin/stats', [AdminController::class, 'stats']);
+    Route::patch('/admin/verify-seller/{userId}', [AdminController::class, 'verifySeller']);
+    Route::patch('/admin/verify-product/{productId}', [AdminController::class, 'verifyProduct']);
 });
 
 Route::get('/test-cors', function () {
