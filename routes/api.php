@@ -42,6 +42,10 @@ Route::get('/brands', [BrandController::class, 'index']);
 // search
 Route::get('/search/popular', [SearchController::class, 'popular']);
 
+// delivery & payment options (publik)
+Route::get('/delivery/options', [OrderController::class, 'deliveryOptions']);
+Route::get('/payment/methods', [OrderController::class, 'paymentMethods']);
+
 // tracking pesanan (publik)
 Route::get('/orders/tracking/{orderNumber}', [OrderController::class, 'tracking']);
 

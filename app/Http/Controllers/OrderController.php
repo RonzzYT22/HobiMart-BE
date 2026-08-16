@@ -32,7 +32,6 @@ class OrderController extends Controller
         $user = $request->user();
         $items = $request->input('items');
 
-        // hitung subtotal dari produk yang ada di DB
         $subtotal = 0;
         $orderItems = [];
         $productIds = array_column($items, 'product_id');
@@ -60,7 +59,6 @@ class OrderController extends Controller
             ];
         }
 
-        // hitung ongkir
         $delivery = $request->input('delivery');
         $shipping = match ($delivery) {
             'express' => 45000,
@@ -78,7 +76,6 @@ class OrderController extends Controller
         $num = $lastToday ? ((int) substr($lastToday->order_number, -4)) + 1 : 1;
         $orderNumber = 'HM-ORD-' . $today . '-' . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
 
-        // timeline awal
         $timeline = [
             [
                 'status' => 'Placed',
@@ -87,7 +84,6 @@ class OrderController extends Controller
             ],
         ];
 
-        // estimasi tiba
         $estDays = match ($delivery) {
             'express' => 2,
             'sameday' => 1,
@@ -95,7 +91,6 @@ class OrderController extends Controller
         };
         $estArrival = now()->addDays($estDays);
 
-        // buat order
         $order = Order::create([
             'order_number' => $orderNumber,
             'user_id' => $user->id,
@@ -112,7 +107,6 @@ class OrderController extends Controller
             'timeline' => $timeline,
         ]);
 
-        // simpan item pesanan
         foreach ($orderItems as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
@@ -124,7 +118,6 @@ class OrderController extends Controller
             ]);
         }
 
-        // dummy payment instructions
         $paymentInstructions = $this->generatePaymentInstructions($order);
 
         return response()->json([
@@ -229,7 +222,6 @@ class OrderController extends Controller
             ], 422);
         }
 
-        // update status pembayaran
         $timeline = $order->timeline ?? [];
         $timeline[] = [
             'status' => 'Paid',
@@ -251,7 +243,7 @@ class OrderController extends Controller
         ]);
     }
 
-    // tracking pesanan (publik pakai order number)
+    // tracking pesanan (publik)
     public function tracking(string $orderNumber): JsonResponse
     {
         $order = Order::where('order_number', $orderNumber)->first();
@@ -273,6 +265,69 @@ class OrderController extends Controller
             'estArrival' => $order->est_arrival?->format('Y-m-d'),
             'shippingAddress' => $order->shipping_address,
             'timeline' => $order->timeline,
+        ]);
+    }
+
+    // daftar opsi pengiriman
+    public function deliveryOptions(): JsonResponse
+    {
+        return response()->json([
+            'options' => [
+                [
+                    'id' => 'regular',
+                    'label' => 'Regular',
+                    'price' => 20000,
+                    'days' => '3-5 hari',
+                    'desc' => 'Pengiriman standar via JNE / J&T',
+                ],
+                [
+                    'id' => 'express',
+                    'label' => 'Express',
+                    'price' => 45000,
+                    'days' => '1-2 hari',
+                    'desc' => 'Pengiriman cepat via JNE YES / SiCepat BEST',
+                ],
+                [
+                    'id' => 'sameday',
+                    'label' => 'Same Day',
+                    'price' => 80000,
+                    'days' => 'Hari ini',
+                    'desc' => 'Pengiriman hari yang sama via GoSend / GrabExpress',
+                ],
+            ],
+        ]);
+    }
+
+    // daftar metode pembayaran
+    public function paymentMethods(): JsonResponse
+    {
+        return response()->json([
+            'methods' => [
+                [
+                    'id' => 'qris',
+                    'label' => 'QRIS',
+                    'desc' => 'Scan & bayar pakai aplikasi apa saja',
+                    'badge' => null,
+                ],
+                [
+                    'id' => 'bank',
+                    'label' => 'Bank Transfer',
+                    'desc' => 'BCA / BRI / Mandiri',
+                    'badge' => null,
+                ],
+                [
+                    'id' => 'ewallet',
+                    'label' => 'E-Wallet',
+                    'desc' => 'GoPay / OVO / Dana',
+                    'badge' => null,
+                ],
+                [
+                    'id' => 'cc',
+                    'label' => 'Credit Card',
+                    'desc' => 'Visa, Mastercard, JCB',
+                    'badge' => 'Popular',
+                ],
+            ],
         ]);
     }
 
@@ -319,7 +374,6 @@ class OrderController extends Controller
             ],
         };
 
-        // tambah status dan batas waktu
         $instructions['status'] = 'Unpaid';
         $instructions['deadline'] = now()->addHours(24)->toISOString();
 
