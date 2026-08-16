@@ -16,5 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+            $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'error' => [
+                            'code' => 'VALIDATION_FAILED',
+                            'message' => $e->getMessage(),
+                            'fields' => $e->errors(),
+                        ],
+                    ], 422);
+                }
+            });
+        })->create();
