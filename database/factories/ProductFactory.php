@@ -47,7 +47,8 @@ class ProductFactory extends Factory
         }
 
         return [
-            'name' => fake()->words(fake()->numberBetween(2, 5), true),
+                    'sku' => 'HM-' . str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'name' => fake()->words(fake()->numberBetween(2, 5), true),
             'category' => $category,
             'subcategory' => $subcategory,
             'brand' => fake()->randomElement($brands),
