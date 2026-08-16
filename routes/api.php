@@ -114,5 +114,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/test-cors', function () {
-    return ['status' => 'ok'];
+    return response()->json(['status' => 'ok']);
+});
+
+// admin dashboard (butuh auth + role admin)
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', \App\Http\Controllers\Admin\DashboardController::class);
 });

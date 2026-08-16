@@ -20,10 +20,10 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'password', 'avatar',
-        'verified_collector', 'preferences',
-        'rating', 'positive_rate', 'trades_count', 'total_sales', 'is_verified_seller',
-    ];
+            'name', 'email', 'phone', 'password', 'avatar', 'role',
+            'verified_collector', 'preferences',
+            'rating', 'positive_rate', 'trades_count', 'total_sales', 'is_verified_seller',
+        ];
 
     protected $hidden = [
         'password',
@@ -87,13 +87,19 @@ class User extends Authenticatable
     }
 
     // statistik user untuk dashboard
-    public function getStatsAttribute(): array
-    {
-        return [
-            'products_count' => $this->products()->count(),
-            'orders_count' => $this->orders()->count(),
-            'wishlist_count' => $this->wishlist()->count(),
-            'collection_count' => $this->collection()->count(),
-        ];
+        public function getStatsAttribute(): array
+        {
+            return [
+                'products_count' => $this->products()->count(),
+                'orders_count' => $this->orders()->count(),
+                'wishlist_count' => $this->wishlist()->count(),
+                'collection_count' => $this->collection()->count(),
+            ];
+        }
+
+        // cek apakah user admin
+        public function isAdmin(): bool
+        {
+            return $this->role === 'admin';
+        }
     }
-}

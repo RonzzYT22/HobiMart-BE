@@ -13,8 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
-    })
+            $middleware->statefulApi();
+            $middleware->alias([
+                'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            ]);
+        })
     ->withExceptions(function (Exceptions $exceptions): void {
             $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
                 if ($request->expectsJson()) {
