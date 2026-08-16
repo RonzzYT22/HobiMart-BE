@@ -5,33 +5,39 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
-// Public auth routes
+// auth routes (public)
 Route::post('/auth/register', RegisterController::class);
 Route::post('/auth/login', LoginController::class);
 Route::post('/auth/refresh', RefreshController::class);
 
-// Protected auth routes
+// auth routes (protected)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', LogoutController::class);
     Route::get('/me', [MeController::class, 'show']);
     Route::patch('/me', [MeController::class, 'update']);
 });
 
-// Test route for CORS verification
+// daftar route produk - yang spesifik (featured, flash-deals, price-drops) harus di atas {sku}
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/featured', [ProductController::class, 'featured']);
+Route::get('/products/flash-deals', [ProductController::class, 'flashDeals']);
+Route::get('/products/price-drops', [ProductController::class, 'priceDrops']);
+Route::get('/products/{sku}', [ProductController::class, 'show']);
+Route::get('/products/{sku}/related', [ProductController::class, 'related']);
+
+// CRUD produk (protected)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::patch('/products/{sku}', [ProductController::class, 'update']);
+    Route::put('/products/{sku}', [ProductController::class, 'update']);
+    Route::delete('/products/{sku}', [ProductController::class, 'destroy']);
+});
+
+// test CORS
 Route::get('/test-cors', function () {
     return ['status' => 'ok'];
 });

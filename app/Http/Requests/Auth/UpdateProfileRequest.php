@@ -7,19 +7,13 @@ use Illuminate\Validation\Rules\Password;
 
 class UpdateProfileRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // hanya user yang sedang login yang boleh pakai request ini
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    // aturan validasi untuk ubah profil
     public function rules(): array
     {
         return [
@@ -33,11 +27,7 @@ class UpdateProfileRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
+    // pesan error
     public function messages(): array
     {
         return [
@@ -45,14 +35,10 @@ class UpdateProfileRequest extends FormRequest
             'phone.unique' => 'This phone number is already registered.',
             'password.confirmed' => 'Password confirmation does not match.',
             'password.min' => 'Password must be at least 8 characters.',
-            'avatar.image' => 'Avatar must be an image.',
-            'avatar.max' => 'Avatar must not exceed 2MB.',
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
+    // bersihkan nomor hp dari karakter selain angka
     protected function prepareForValidation(): void
     {
         if ($this->has('phone')) {

@@ -10,13 +10,12 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    /**
-     * Login user.
-     */
+    // login pakai email atau nomor hp
     public function __invoke(LoginRequest $request): JsonResponse
     {
         $credentials = $request->only(['email', 'phone', 'password']);
 
+        // cari user berdasarkan email atau phone
         $user = User::where(function ($query) use ($credentials) {
             if (isset($credentials['email'])) {
                 $query->where('email', $credentials['email']);
@@ -26,6 +25,7 @@ class LoginController extends Controller
             }
         })->first();
 
+        // cek apakah user ada dan password cocok
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'error' => [
@@ -35,7 +35,7 @@ class LoginController extends Controller
             ], 401);
         }
 
-        // Revoke existing refresh tokens
+        // hapus token refresh yang lama biar tidak menumpuk
         $user->tokens()->where('name', 'refresh-token')->delete();
 
         $accessToken = $user->createToken('access-token', ['access'], now()->addMinutes(15))->plainTextToken;
@@ -48,9 +48,7 @@ class LoginController extends Controller
         ]);
     }
 
-    /**
-     * Format user response with stats.
-     */
+    // susun data user beserta jumlah relasinya
     protected function userResponse(User $user): array
     {
         $user->loadCount(['products', 'orders', 'wishlist', 'collection']);

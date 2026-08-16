@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
-    /**
-     * Register a new user.
-     */
+    // daftar user baru
     public function __invoke(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -22,6 +20,7 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // buat token akses dan token refresh
         $accessToken = $user->createToken('access-token', ['access'], now()->addMinutes(15))->plainTextToken;
         $refreshToken = $user->createToken('refresh-token', ['refresh'], now()->addDays(30))->plainTextToken;
 
@@ -32,9 +31,7 @@ class RegisterController extends Controller
         ], 201);
     }
 
-    /**
-     * Format user response with stats.
-     */
+    // susun data user beserta jumlah relasinya
     protected function userResponse(User $user): array
     {
         $user->loadCount(['products', 'orders', 'wishlist', 'collection']);

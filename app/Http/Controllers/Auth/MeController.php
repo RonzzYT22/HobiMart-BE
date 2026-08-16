@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateProfileRequest;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,9 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class MeController extends Controller
 {
-    /**
-     * Get authenticated user profile with stats.
-     */
+    // ambil data profil user yang sedang login
     public function show(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -37,30 +34,27 @@ class MeController extends Controller
         ]);
     }
 
-    /**
-     * Update authenticated user profile.
-     */
+    // ubah data profil user
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();
 
         $data = $request->validated();
 
+        // kalau ganti password, hash dulu
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }
 
-        // Handle avatar - can be file upload or URL string
+        // avatar bisa berupa file upload atau url
         if (isset($data['avatar'])) {
             if ($request->hasFile('avatar')) {
-                // File upload
                 if ($user->avatar) {
                     Storage::disk('public')->delete($user->avatar);
                 }
                 $path = $request->file('avatar')->store('avatars', 'public');
                 $data['avatar'] = $path;
             }
-            // If it's a string URL, keep it as is
         }
 
         $user->update($data);

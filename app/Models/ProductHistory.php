@@ -2,31 +2,29 @@
 
 namespace App\Models;
 
-use Database\Factories\WishlistFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Wishlist extends Model
+class ProductHistory extends Model
 {
-    use HasFactory;
+    // nama tabelnya singular biar sama dengan migration
+    protected $table = 'product_history';
 
     // kolom yang bisa diisi
     protected $fillable = [
-        'user_id',
         'product_id',
-        'added_at_price',
+        'price',
+        'previous_price',
+        'discount',
+        'recorded_at',
     ];
 
     protected $casts = [
-        'added_at_price' => 'integer',
+        'price' => 'integer',
+        'previous_price' => 'integer',
+        'discount' => 'integer',
+        'recorded_at' => 'datetime',
     ];
-
-    // relasi ke user
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     // relasi ke produk
     public function product(): BelongsTo

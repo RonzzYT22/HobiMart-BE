@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
-    /** @use HasFactory<MessageFactory> */
     use HasFactory;
 
+    // kolom yang bisa diisi
     protected $fillable = [
         'conversation_id',
         'sender_id',
@@ -24,11 +24,13 @@ class Message extends Model
         'read_at' => 'datetime',
     ];
 
+    // relasi ke percakapan
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);
     }
 
+    // relasi ke pengirim pesan
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');

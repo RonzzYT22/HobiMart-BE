@@ -6,13 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('sku', 12)->unique();
             $table->string('name');
             $table->string('category');
             $table->string('subcategory')->nullable();
@@ -20,7 +18,7 @@ return new class extends Migration
             $table->string('series')->nullable();
             $table->string('item_type')->nullable();
             $table->string('language')->nullable();
-            $table->string('year')->nullable();
+            $table->unsignedSmallInteger('year')->nullable();
             $table->enum('condition', ['Mint', 'Near Mint', 'Excellent', 'Good', 'Played', 'Damaged']);
             $table->boolean('verified')->default(false);
             $table->unsignedInteger('stock')->default(0);
@@ -48,9 +46,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('products');

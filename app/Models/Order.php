@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    /** @use HasFactory<OrderFactory> */
     use HasFactory;
 
+    // kolom yang bisa diisi
     protected $fillable = [
         'order_number',
         'user_id',
@@ -30,6 +30,7 @@ class Order extends Model
         'timeline',
     ];
 
+    // kolom json yang otomatis diubah jadi array
     protected $casts = [
         'items' => 'array',
         'shipping_address' => 'array',
@@ -40,11 +41,13 @@ class Order extends Model
         'est_arrival' => 'date',
     ];
 
+    // relasi ke user yang pesan
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    // relasi ke detail item pesanan
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);

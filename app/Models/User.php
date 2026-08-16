@@ -19,36 +19,17 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'password',
-        'avatar',
-        'verified_collector',
-        'preferences',
+        'name', 'email', 'phone', 'password', 'avatar',
+        'verified_collector', 'preferences',
+        'rating', 'positive_rate', 'trades_count', 'total_sales', 'is_verified_seller',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -56,70 +37,56 @@ class User extends Authenticatable
             'password' => 'hashed',
             'preferences' => 'array',
             'verified_collector' => 'boolean',
+            'is_verified_seller' => 'boolean',
+            'rating' => 'decimal:2',
+            'positive_rate' => 'integer',
+            'trades_count' => 'integer',
+            'total_sales' => 'integer',
         ];
     }
 
-    /**
-     * Get the products where the user is the seller.
-     */
+    // produk yang dijual user ini
     public function products(): HasMany
     {
         return $this->hasMany(Product::class, 'seller_id');
     }
 
-    /**
-     * Get the orders for the user.
-     */
+    // pesanan user
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    /**
-     * Get the user's wishlist.
-     */
+    // wishlist user
     public function wishlist(): HasMany
     {
         return $this->hasMany(Wishlist::class);
     }
 
-    /**
-     * Get the user's collection (products they own that are trade available).
-     */
+    // koleksi user (produk trade available)
     public function collection(): HasMany
     {
         return $this->hasMany(Product::class, 'seller_id')
             ->where('trade_available', true);
     }
 
-    /**
-     * Get the conversations where the user is participant A.
-     */
     public function conversationsAsA(): HasMany
     {
         return $this->hasMany(Conversation::class, 'user_a_id');
     }
 
-    /**
-     * Get the conversations where the user is participant B.
-     */
     public function conversationsAsB(): HasMany
     {
         return $this->hasMany(Conversation::class, 'user_b_id');
     }
 
-    /**
-     * Get all conversations for the user.
-     */
     public function conversations(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'conversations', 'user_a_id', 'user_b_id')
             ->withTimestamps();
     }
 
-    /**
-     * Get the user's stats.
-     */
+    // statistik user untuk dashboard
     public function getStatsAttribute(): array
     {
         return [

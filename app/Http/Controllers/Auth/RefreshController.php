@@ -9,9 +9,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class RefreshController extends Controller
 {
-    /**
-     * Refresh access token using refresh token.
-     */
+    // tukar refresh token dengan access token baru
     public function __invoke(Request $request): JsonResponse
     {
         $refreshToken = $request->bearerToken();
@@ -36,7 +34,7 @@ class RefreshController extends Controller
             ], 401);
         }
 
-        // Check if token has 'refresh' ability
+        // pastikan token ini memang token refresh
         if (! $token->can('refresh')) {
             return response()->json([
                 'error' => [
@@ -46,7 +44,7 @@ class RefreshController extends Controller
             ], 401);
         }
 
-        // Check if token is expired
+        // cek masa berlaku token
         if ($token->expires_at && $token->expires_at->isPast()) {
             $token->delete();
             return response()->json([
@@ -68,10 +66,9 @@ class RefreshController extends Controller
             ], 401);
         }
 
-        // Revoke the used refresh token
+        // token refresh lama dihapus, terus bikin yang baru
         $token->delete();
 
-        // Create new access token and refresh token
         $accessToken = $user->createToken('access-token', ['access'], now()->addMinutes(15))->plainTextToken;
         $newRefreshToken = $user->createToken('refresh-token', ['refresh'], now()->addDays(30))->plainTextToken;
 
@@ -82,9 +79,7 @@ class RefreshController extends Controller
         ]);
     }
 
-    /**
-     * Format user response with stats.
-     */
+    // susun data user beserta jumlah relasinya
     protected function userResponse($user): array
     {
         $user->loadCount(['products', 'orders', 'wishlist', 'collection']);

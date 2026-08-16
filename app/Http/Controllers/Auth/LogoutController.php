@@ -9,9 +9,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class LogoutController extends Controller
 {
-    /**
-     * Logout user by revoking refresh token.
-     */
+    // logout dengan cara menghapus token refresh
     public function __invoke(Request $request): JsonResponse
     {
         $refreshToken = $request->bearerToken();
@@ -36,7 +34,7 @@ class LogoutController extends Controller
             ], 401);
         }
 
-        // Check if token has 'refresh' ability
+        // pastikan yang dikirim memang token refresh
         if (! $token->can('refresh')) {
             return response()->json([
                 'error' => [
@@ -46,7 +44,7 @@ class LogoutController extends Controller
             ], 401);
         }
 
-        // Revoke the refresh token
+        // hapus tokennya
         $token->delete();
 
         return response()->json([

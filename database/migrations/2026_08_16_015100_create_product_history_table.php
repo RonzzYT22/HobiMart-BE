@@ -8,20 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
+        Schema::create('product_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->string('name');
-            $table->unsignedInteger('quantity');
             $table->unsignedBigInteger('price');
-            $table->string('image')->nullable();
+            $table->unsignedBigInteger('previous_price')->nullable();
+            $table->unsignedInteger('discount')->default(0);
+            $table->timestamp('recorded_at')->useCurrent();
             $table->timestamps();
+
+            $table->index(['product_id', 'recorded_at']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('product_history');
     }
 };

@@ -6,44 +6,33 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // request ini boleh dipakai siapa saja
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
+    // aturan validasi untuk login
     public function rules(): array
     {
         return [
-            'email' => ['required_without:phone', 'string', 'max:255'],
+            'email' => ['required_without:phone', 'email'],
             'phone' => ['required_without:email', 'string', 'max:20'],
             'password' => ['required', 'string'],
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
+    // pesan error
     public function messages(): array
     {
         return [
             'email.required_without' => 'Either email or phone is required.',
             'phone.required_without' => 'Either email or phone is required.',
+            'password.required' => 'Password is required.',
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
+    // bersihkan nomor hp dari karakter selain angka
     protected function prepareForValidation(): void
     {
         if ($this->has('phone')) {
