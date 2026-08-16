@@ -6,3 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// Test route for CORS verification
+Route::get('/test-cors', function () {
+    return ['status' => 'ok'];
+});
