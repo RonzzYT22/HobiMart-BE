@@ -187,8 +187,8 @@ class MigrationTest extends TestCase
     public function test_promo_codes_table_has_all_columns(): void
     {
         $expectedColumns = [
-            'id', 'code', 'discount_type', 'discount_value', 'expires_at',
-            'max_uses', 'used_count', 'applicable_scope', 'applicable_ids', 'active',
+            'id', 'code', 'discount_type', 'discount_value', 'min_purchase',
+            'max_uses', 'used_count', 'valid_from', 'valid_until', 'active',
             'created_at', 'updated_at',
         ];
 
