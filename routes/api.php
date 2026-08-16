@@ -9,6 +9,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Http\Request;
@@ -48,6 +49,9 @@ Route::get('/payment/methods', [OrderController::class, 'paymentMethods']);
 
 // tracking pesanan (publik)
 Route::get('/orders/tracking/{orderNumber}', [OrderController::class, 'tracking']);
+
+// validasi kode promo (publik)
+Route::post('/promo/validate', [PromoController::class, 'validate']);
 
 // routes yang butuh login
 Route::middleware('auth:sanctum')->group(function () {
