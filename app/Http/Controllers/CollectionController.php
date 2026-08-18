@@ -85,7 +85,7 @@ class CollectionController extends Controller
     {
         $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
-            'condition' => ['nullable', 'string', 'in:Mint,Near Mint,Excellent,Good,Played,Damaged'],
+            'condition' => ['nullable', 'string', 'in:Mint,Near Mint,Excellent,Very Good,Good,Fair,Poor'],
             'grade' => ['nullable', 'string', 'max:50'],
             'purchase_price' => ['nullable', 'integer', 'min:0'],
             'purchase_date' => ['nullable', 'date'],
@@ -205,7 +205,7 @@ class CollectionController extends Controller
         }
 
         $request->validate([
-            'condition' => ['nullable', 'string', 'in:Mint,Near Mint,Excellent,Good,Played,Damaged'],
+            'condition' => ['nullable', 'string', 'in:Mint,Near Mint,Excellent,Very Good,Good,Fair,Poor'],
             'grade' => ['nullable', 'string', 'max:50'],
             'purchase_price' => ['nullable', 'integer', 'min:0'],
             'purchase_date' => ['nullable', 'date'],

@@ -117,25 +117,20 @@ class TradeController extends Controller
         $request->validate([
             'receiver_id' => ['required', 'integer', 'exists:users,id'],
             'initiator_collection_id' => ['required', 'integer', 'exists:collections,id'],
-            'receiver_collection_id' => ['required', 'integer', 'exists:collections,id'],
-            'cash_difference' => ['nullable', 'integer'], // negatif = receiver terima uang
+            'receiver_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+            'receiver_product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'cash_difference' => ['nullable', 'integer'],
         ]);
 
         $user = $request->user();
 
-        // tidak bisa trade dengan diri sendiri
         if ($request->receiver_id === $user->id) {
             return response()->json([
-                'error' => [
-                    'code' => 'SELF_TRADE',
-                    'message' => 'Tidak bisa trade dengan diri sendiri.',
-                ],
+                'error' => ['code' => 'SELF_TRADE', 'message' => 'Tidak bisa trade dengan diri sendiri.'],
             ], 422);
         }
 
-        // validasi kepemilikan koleksi
         $initiatorCollection = Collection::with('product')->findOrFail($request->initiator_collection_id);
-        $receiverCollection = Collection::with('product')->findOrFail($request->receiver_collection_id);
 
         if ($initiatorCollection->user_id !== $user->id) {
             return response()->json([
@@ -143,23 +138,42 @@ class TradeController extends Controller
             ], 422);
         }
 
-        if ($receiverCollection->user_id !== $request->receiver_id) {
+        // receiver_collection_id atau receiver_product_id — setidaknya satu harus ada
+        $receiverCollectionId = null;
+        if ($request->receiver_collection_id) {
+            $receiverCollection = Collection::with('product')->findOrFail($request->receiver_collection_id);
+            if ($receiverCollection->user_id !== $request->receiver_id) {
+                return response()->json([
+                    'error' => ['code' => 'NOT_THEIR_ITEM', 'message' => 'Item yang diminta bukan milik penerima.'],
+                ], 422);
+            }
+            $receiverCollectionId = $receiverCollection->id;
+        } elseif ($request->receiver_product_id) {
+            // cari koleksi receiver yang punya produk itu
+            $receiverCollection = Collection::where('user_id', $request->receiver_id)
+                ->where('product_id', $request->receiver_product_id)
+                ->first();
+            if ($receiverCollection) {
+                $receiverCollectionId = $receiverCollection->id;
+            }
+            // kalau receiver belum punya di koleksi, tetap lanjut — receiver bisa add nanti
+        }
+
+        if (! $receiverCollectionId && ! $request->receiver_product_id) {
             return response()->json([
-                'error' => ['code' => 'NOT_THEIR_ITEM', 'message' => 'Item yang diminta bukan milik penerima.'],
+                'error' => ['code' => 'NO_TARGET', 'message' => 'Harus menentukan item receiver (collection_id atau product_id).'],
             ], 422);
         }
 
-        // cek apakah item sudah dalam trade aktif
-        $activeTrade = Trade::where(function ($q) use ($initiatorCollection, $receiverCollection) {
+        // cek item initiator tidak dalam trade aktif
+        $activeTrade = Trade::where(function ($q) use ($initiatorCollection) {
             $q->where('initiator_collection_id', $initiatorCollection->id)
-              ->orWhere('receiver_collection_id', $initiatorCollection->id)
-              ->orWhere('initiator_collection_id', $receiverCollection->id)
-              ->orWhere('receiver_collection_id', $receiverCollection->id);
+              ->orWhere('receiver_collection_id', $initiatorCollection->id);
         })->whereIn('status', ['pending', 'negotiating', 'agreed'])->exists();
 
         if ($activeTrade) {
             return response()->json([
-                'error' => ['code' => 'ITEM_IN_ACTIVE_TRADE', 'message' => 'Salah satu item sudah dalam trade aktif.'],
+                'error' => ['code' => 'ITEM_IN_ACTIVE_TRADE', 'message' => 'Item Anda sudah dalam trade aktif.'],
             ], 422);
         }
 
@@ -167,12 +181,10 @@ class TradeController extends Controller
             'initiator_id' => $user->id,
             'receiver_id' => $request->receiver_id,
             'initiator_collection_id' => $initiatorCollection->id,
-            'receiver_collection_id' => $receiverCollection->id,
+            'receiver_collection_id' => $receiverCollectionId,
             'cash_difference' => $request->cash_difference ?? 0,
             'status' => 'pending',
         ]);
-
-        // TODO: kirim notifikasi ke receiver (Event/Queue)
 
         return response()->json([
             'id' => $trade->id,
@@ -275,10 +287,8 @@ class TradeController extends Controller
             'cash_difference' => ['required', 'integer'],
         ]);
 
-        $trade->update([
-            'cash_difference' => $request->cash_difference,
-            'status' => 'negotiating',
-        ]);
+        $trade->cash_difference = $request->cash_difference;
+        $trade->transitionTo('negotiating');
 
         // TODO: notifikasi ke lawan
 
@@ -336,17 +346,11 @@ class TradeController extends Controller
         ]);
 
         if ($isInitiator) {
-            $trade->update([
-                'initiator_tracking' => $request->tracking_number,
-                'status' => 'shipped_initiator',
-                'initiator_shipped_at' => now(),
-            ]);
+            $trade->initiator_tracking = $request->tracking_number;
+            $trade->transitionTo('shipped_initiator');
         } else {
-            $trade->update([
-                'receiver_tracking' => $request->tracking_number,
-                'status' => 'shipped_receiver',
-                'receiver_shipped_at' => now(),
-            ]);
+            $trade->receiver_tracking = $request->tracking_number;
+            $trade->transitionTo('shipped_receiver');
         }
 
         // cek apakah kedua pihak sudah kirim -> auto complete setelah konfirmasi
@@ -385,14 +389,12 @@ class TradeController extends Controller
         }
 
         // jika kedua pihak sudah confirm (implisit via bothShipped + ini), complete
-        if ($trade->bothShipped()) {
+        if ($trade->bothShipped() && $trade->canTransitionTo('completed')) {
             $trade->transitionTo('completed');
 
-            // update statistik user
-            $trade->initiator->increment('trades_count');
-            $trade->receiver->increment('trades_count');
-
-            // TODO: notifikasi selesai, minta rating
+            // increment trades_count (hanya sekali, saat complete)
+            $trade->initiator()->increment('trades_count');
+            $trade->receiver()->increment('trades_count');
         }
 
         return response()->json([
@@ -448,10 +450,8 @@ class TradeController extends Controller
             'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $trade->update([
-            'status' => 'disputed',
-            'dispute_reason' => $request->reason,
-        ]);
+        $trade->dispute_reason = $request->reason;
+        $trade->transitionTo('disputed');
 
         // TODO: notifikasi admin
 
@@ -484,11 +484,14 @@ class TradeController extends Controller
         $isInitiator = $trade->isInitiator($user->id);
         $target = $isInitiator ? $trade->receiver : $trade->initiator;
 
-        // update rating target user (simple average)
-        $newCount = $target->trades_count + 1;
-        $newRating = round((($target->rating * $target->trades_count) + $request->rating) / $newCount, 2);
+        // update rating target user (weighted average, trades_count sudah di-increment di confirmReceived)
+        $oldCount = $target->trades_count - 1; // sebelum increment
+        $newCount = $target->trades_count;
+        $newRating = round((($target->rating * $oldCount) + $request->rating) / max($newCount, 1), 2);
         $positive = $request->rating >= 4 ? 1 : 0;
-        $newPositiveRate = round((($target->positive_rate * $target->trades_count) + $positive) / $newCount * 100);
+        $newPositiveRate = $oldCount > 0
+            ? round((($target->positive_rate / 100 * $oldCount) + $positive) / $newCount * 100)
+            : ($positive ? 100 : 0);
 
         $target->update([
             'trades_count' => $newCount,
