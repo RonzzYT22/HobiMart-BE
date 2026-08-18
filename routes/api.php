@@ -4,10 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\RefreshController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\GeoController;
@@ -18,7 +19,9 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ShippingController;
+use App\Http\Controllers\TradeController;
 use App\Http\Controllers\TradeInController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Http\Request;
@@ -96,6 +99,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/trade-ins/{id}/accept', [TradeInController::class, 'accept']);
     Route::patch('/trade-ins/{id}/reject', [TradeInController::class, 'reject']);
 
+    // Collection routes
+    Route::get('/collection', [CollectionController::class, 'index']);
+    Route::post('/collection', [CollectionController::class, 'store']);
+    Route::get('/collection/{id}', [CollectionController::class, 'show']);
+    Route::patch('/collection/{id}', [CollectionController::class, 'update']);
+    Route::delete('/collection/{id}', [CollectionController::class, 'destroy']);
+    Route::get('/collection/user/{userId}', [CollectionController::class, 'publicIndex']);
+
+    // Trade routes (2-arah real)
+    Route::get('/trades', [TradeController::class, 'index']);
+    Route::post('/trades', [TradeController::class, 'store']);
+    Route::get('/trades/{id}', [TradeController::class, 'show']);
+    Route::patch('/trades/{id}/negotiate', [TradeController::class, 'negotiate']);
+    Route::patch('/trades/{id}/agree', [TradeController::class, 'agree']);
+    Route::patch('/trades/{id}/ship', [TradeController::class, 'ship']);
+    Route::patch('/trades/{id}/confirm-received', [TradeController::class, 'confirmReceived']);
+    Route::patch('/trades/{id}/cancel', [TradeController::class, 'cancel']);
+    Route::patch('/trades/{id}/dispute', [TradeController::class, 'dispute']);
+    Route::post('/trades/{id}/rate', [TradeController::class, 'rate']);
+
+    // Transaction history (unified)
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']);
+    Route::get('/transactions/export', [TransactionController::class, 'export']);
+
     // community (protected)
     Route::post('/community/posts', [CommunityController::class, 'storePost']);
     Route::post('/community/posts/{post}/comments', [CommunityController::class, 'addComment']);
@@ -120,4 +148,39 @@ Route::get('/test-cors', function () {
 // admin dashboard (butuh auth + role admin)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', \App\Http\Controllers\Admin\DashboardController::class);
+
+    // Users
+    Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index']);
+    Route::get('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show']);
+    Route::patch('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'update']);
+    Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy']);
+
+    // Products
+    Route::get('/products', [\App\Http\Controllers\Admin\AdminProductController::class, 'index']);
+    Route::get('/products/{id}', [\App\Http\Controllers\Admin\AdminProductController::class, 'show']);
+    Route::patch('/products/{id}', [\App\Http\Controllers\Admin\AdminProductController::class, 'update']);
+    Route::post('/products/bulk-verify', [\App\Http\Controllers\Admin\AdminProductController::class, 'bulkVerify']);
+    Route::delete('/products/{id}', [\App\Http\Controllers\Admin\AdminProductController::class, 'destroy']);
+
+    // Orders
+    Route::get('/orders', [\App\Http\Controllers\Admin\AdminOrderController::class, 'index']);
+    Route::get('/orders/{id}', [\App\Http\Controllers\Admin\AdminOrderController::class, 'show']);
+    Route::patch('/orders/{id}', [\App\Http\Controllers\Admin\AdminOrderController::class, 'update']);
+    Route::post('/orders/{id}/refund', [\App\Http\Controllers\Admin\AdminOrderController::class, 'refund']);
+    Route::get('/orders/export', [\App\Http\Controllers\Admin\AdminOrderController::class, 'export']);
+
+    // Trades
+    Route::get('/trades', [\App\Http\Controllers\Admin\AdminTradeController::class, 'index']);
+    Route::get('/trades/{id}', [\App\Http\Controllers\Admin\AdminTradeController::class, 'show']);
+    Route::post('/trades/{id}/force-complete', [\App\Http\Controllers\Admin\AdminTradeController::class, 'forceComplete']);
+    Route::post('/trades/{id}/force-cancel', [\App\Http\Controllers\Admin\AdminTradeController::class, 'forceCancel']);
+    Route::post('/trades/{id}/resolve-dispute', [\App\Http\Controllers\Admin\AdminTradeController::class, 'resolveDispute']);
+    Route::get('/trades/export', [\App\Http\Controllers\Admin\AdminTradeController::class, 'export']);
+
+    // Analytics
+    Route::get('/analytics/overview', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'overview']);
+    Route::get('/analytics/categories', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'categories']);
+    Route::get('/analytics/sellers', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'sellers']);
+    Route::get('/analytics/charts', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'charts']);
+    Route::get('/analytics/export', [\App\Http\Controllers\Admin\AdminAnalyticsController::class, 'export']);
 });

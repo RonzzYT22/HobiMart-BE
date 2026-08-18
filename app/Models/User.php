@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Collection;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Trade;
 use App\Models\Wishlist;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -68,6 +70,31 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class, 'seller_id')
             ->where('trade_available', true);
+    }
+
+    // koleksi pribadi user (Collection model)
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    // trade sebagai initiator
+    public function tradesAsInitiator(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'initiator_id');
+    }
+
+    // trade sebagai receiver
+    public function tradesAsReceiver(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'receiver_id');
+    }
+
+    // semua trade user
+    public function trades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'initiator_id')
+            ->orWhere('receiver_id', $this->id);
     }
 
     public function conversationsAsA(): HasMany
